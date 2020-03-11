@@ -1,0 +1,873 @@
+wp-cli commands
+===
+wp media import ~/Pictures/**\/*.jpg
+
+===
+autoload
+wp package install wp-cli/profile-command
+wp package install trepmal/wp-revisions-cli
+
+wp package install wp-cli/doctor-command --allow-root
+
+php -d memory_limit=512M "$(which wp)" package install git@github.com:wp-cli/cron-command.git
+
+php -d memory_limit=512M "$(which wp)" package install git@github.com:wp-cli/doctor-command.git
+
+wp package install git@github.com:wp-cli/doctor-command.git
+
+php -d memory_limit=512M "$(which wp)" package install trepmal/wp-revisions-cli --allow-root
+
+
+wp doctor list --allow-root
+
+wp doctor check autoload-options-size --allow-root
+
+wp db query "SELECT 'autoloaded data in KiB' as name, ROUND(SUM(LENGTH(option_value))/ 1024) as value FROM $(wp db prefix --allow-root)options WHERE autoload='yes' UNION SELECT 'autoloaded data count', count(*) FROM $(wp db prefix --allow-root)options WHERE autoload='yes' UNION (SELECT option_name, length(option_value) FROM $(wp db prefix --allow-root)options WHERE autoload='yes' ORDER BY length(option_value) DESC LIMIT 10)" --allow-root
+
+
+
+===
+wp profile hook --all --spotlight --url=https://www.storystudiochicago.com/instructors/ --orderby=time --allow-root
+======
+wp cron event run
+Runs the next scheduled cron event for the given hook.
+
+wp cron event run [<hook>...] [--due-now] [--all]
+OPTIONS
+
+[<hook>...]
+	One or more hooks to run.
+
+[--due-now]
+	Run all hooks due right now.
+
+[--all]
+	Run all hooks.
+
+
+====
+===
+wp package install wp-cli/doctor-command --allow-root
+php -d memory_limit=512M "$(which wp)" package install  trepmal/wp-revisions-cli
+php -d memory_limit=512M "$(which wp)" package install wp-cli/doctor-command --allow-root
+====
+
+define( 'WP_HOME', 'https://www.storystudiochicago.org' );
+define( 'WP_SITEURL', 'https://www.storystudiochicago.org' );
+https://www.storystudiochicago.org
+
+wp-cli is a super useful shell tool.
+
+wp search-replace 'www.storystudiochicago.com' 'www.storystudiochicago.org' --skip-columns=guid
+wp search-replace 'storystudiochicago.com' 'storystudiochicago.org' --skip-columns=guid
+wp search-replace 'example.dev' 'example.com' --skip-columns=guid
+Or, if you only want to change the option, you can do:
+
+wp option update home 'http://example.com'
+wp option update siteurl 'http://example.com'
+
+==========
+wp rewrite flush (permalinks)
+wp rewrite structure  (permalinks)
+==
+
+wp option get permalink_structure
+
+wp option update permalink_structure '/%postname%'
+
+=====
+Purging Cache
+In this example, object caching is enabled on the site on our Managed WordPress or Managed WooCommerce, if you need to clear the object cache, use:
+
+wp cache flush
+
+Regenerate Thumbnail Images
+If you changed the theme you were using on your site (which might be setting different image sizes), or if you changed the product image sizes in WooCommerce but now need to regenerate all thumbnail images, you can run this command:
+
+wp media regenerate --yes
+
+Deleting Spam Comments
+If you have comments enabled on your site and you want to delete all spam comments. Only run this command if you know that you do have comments marked as spam on your site, then you can run this command:
+
+wp comment delete $(wp comment list --status=spam --format=ids)
+
+Removing Temp Data from Database
+Expired transients can build up if you have a WooCommerce store. If you need to delete any of this temporary data, you can remove it from your database by running the following command:
+
+wp transient delete --expired
+
+Optimizing a Database
+If you want to optimize your site database, you can run this command:
+
+wp db optimize
+
+Deleting Posts in Trash
+If you wanted to delete all posts that are in the trash, only run this command if you have moved posts to the trash, then you could run this command:
+
+wp post delete $(wp post list --post_status=trash --format=ids)
+
+Deleting Posts in Draft Status
+If you did need to delete all posts that are set as draft post status, you could run this command;
+
+wp post delete $(wp post list --post_status=draft --format=ids)
+
+wp db export
+
+You can now use gzip to compress the resulting sql file which will mean a smaller file being stored on your server:
+
+gzip sitebackup.sql
+
+Cleaning Up Your Post Revisions
+To delete post all revisions (moving them temporarily into the trash), use this WP-CLI command:
+
+wp post delete $(wp post list --post_type='revision' --format=ids)
+
+To delete the post revisions which have been moved to the trash (this includes all post revisions which have a post status of trash), run this command:
+
+
+wp post delete --force $(wp post list --post_type='revision' --format=ids)
+
+
+You can skip the first step of moving the posts to the trash by just running the second command. This will remove all post revisions, both those in the trash and those that are in the active portion of the site.
+
+wp post delete $(wp post list --post_type='revision' --format=ids)
+
+ 
+
+These WP-CLI commands are all very handy for basic housekeeping of your site. These commands in WP-CLI can be used daily or weekly to keep your site optimized and free of bloat.
+
+
+====
+To install the package for WP-CLI, run the following command:
+
+wp package install trepmal/wp-revisions-cli
+
+After the package WP Revisions has been installed, to clean all post revisions, you can use the following command. Please note: this command can be slow, since it will query post revisions before deleting them.
+
+wp revisions clean -1
+
+If you wanted to delete all post revisions before a specific date, you can include that in the command. For example:
+
+wp revisions clean --before-date=2019-06-10
+
+If you needed to clean all post revisions other than those for a specific post type, include that post type at the end of the command. For example, revisions for the WooCommerce created product post type would not be deleted if you run this command:
+
+wp revisions clean --post_type=product
+
+For a faster method to delete all post revisions, you can run this command:
+
+wp revisions dump --hard
+
+To list all existing post revisions, you can run this command:
+
+wp revisions list
+
+Easily deleting post revisions from your site database will help keep the database cleaned up. Streamlining the database can result in performance improvements, especially as the size of the database grows.
+
+
+====
+The wp-sec package is probably something that every WordPress developer should be running regularly on every site they manage, probably with a CRON job that greps the output and emails you when it indicates a vulnerability.
+
+    wp wp-sec check
+=======
+wp search-replace 'http://old-domain.com/' 'http://new-domain.com/' --precise --recurse-objects --all-tables-with-prefix
+http://www.storystudiochicago.org/
+wp search-replace 'http://www.storystudiochicago.org/' 'https://www.storystudiochicago.org/' --precise --recurse-objects --all-tables-with-prefix
+http://dedianaelderlaw.com/public-speaking/
+
+wp search-replace 'j6v.09c.myftpupload.com' 'dedianaelderlaw.com' --precise --recurse-objects --all-tables-with-prefix
+http:\/\/www.w3.org
+wp search-replace 'http:\/\/www.w3.org' 'https:\/\/www.w3.org' --precise --recurse-objects --all-tables-with-prefix
+
+wp search-replace 'http://kennywhitesports.com/' 'https://www.kennywhitesports.com/' --precise --recurse-objects --all-tables-with-prefix
+wp search-replace 'name,tags,price,add-to-cart' 'name,description,price,add-to-cart' --precise --recurse-objects --all-tables-with-prefix
+https://zg3.786.myftpupload.com/
+name,tags,price,add-to-cart
+wp-cli #wp-cli
+wp-cli is a super useful shell tool.
+
+wp search-replace 'https://bardines.com/wp-content/' '/wp-content/' --precise --recurse-objects --all-tables-with-prefix
+
+wp search-replace 'https://mybetterbuddy.com/wp-content/' '/wp-content/' --precise --recurse-objects --all-tables-with-prefix
+wp search-replace 'https://ynz.0af.myftpupload.com/wp-content/uploads/' '/wp-content/uploads/' --precise --recurse-objects --all-tables-with-prefix
+
+
+wp search-replace 'example.dev' 'example.com' --skip-columns=guid
+wp search-replace woo_wpmudev_host www_kennywhitesports.com –-dry-run
+
+
+
+========
+nice database backup:
+wp ai1wm backup --exclude-media --exclude-themes --exclude-inactive-themes --exclude-muplugins --exclude-plugins --exclude-inactive-plugins --exclude-cache
+delete inactive plugins
+wp plugin delete $(wp plugin list --status=inactive --field=name)
+
+wp ai1wm backup --exclude-inactive-themes  --exclude-cache
+
+Do a backup
+Install the plu
+wp plugin install all-in-one-wp-migration --activate
+
+You must reload the page once before continuing
+
+Do the backup
+Adjust the settings for your own need, this here makes a backup of the database only. I suggest using rsync to sync media files.
+
+wp ai1wm backup --exclude-media --exclude-themes --exclude-inactive-themes --exclude-muplugins --exclude-plugins --exclude-inactive-plugins --exclude-cache
+
+Remove the plugin
+wp plugin deactivate all-in-one-wp-migration --uninstall
+wp plugin deactivate wonderplugin-lightbox-trial --uninstall
+wp plugin deactivate wonderplugin-pdf-embed  --uninstall
+
+Restore a backup
+Go to backup directory or create if does not exist
+cd wp-content/ai1wm-backups/
+
+Download the backup
+wget http://siteurl.fi/wp-content/ai1wm-backups/backup-20180105-142530-313.wpress
+
+Install the plugin
+wp plugin install all-in-one-wp-migration --activate
+
+You must reload the page once before continuing
+
+Restore the site from backup
+wp ai1wm restore backup-20180105-142530-313.wpress
+
+Not sure if necessary to flush permalinks twice, like when restoring from front end, but do it once or twice if you encounter problems.
+
+wp rewrite flush
+
+Remove the plugin and delete the backup file
+wp plugin deactivate all-in-one-wp-migration --uninstall
+
+rm backup-20180105-142530-313.wpress
+
+Remember to remove the unneeded backup files from the source as well
+========
+
+Useful WP-CLI Commands with Examples
+Commands always start with wp followed by a command and subcommand, followed by required and optional parameters.
+
+Note that WP-CLI will work with the WordPress installation you are currently in the terminal. If you switch directories to go to another WordPress installation, it will work with that one.
+
+Now we’ll take a look at some useful WP-CLI commands with examples.
+
+wp plugin
+Manages plugins, including installs, activations, and updates.
+
+Installing multiple plugins
+To install multiple plugins here’s an example that downloads and activates 3 plugins:
+
+# Install multiple plugins
+wp plugin install really-simple-ssl jetpack ninja-forms --activate
+e.g: https://wordpress.org/plugins/really-simple-ssl/
+
+Updating a plugin:
+To update a plugin here’s an example that downloads the new version and updates a plugin:
+
+update ALL PLUGINS  
+wp plugin update --all
+
+# Update plugin
+wp plugin update "plugin-name"
+Activate, deactivate and delete a plugin:
+# Activate plugin
+$ wp plugin activate hello
+
+
+# Deactivate plugin
+$ wp plugin deactivate hello
+Plugin 'hello' deactivated.
+Success: Deactivated 1 of 1 plugins.
+
+# Delete plugin
+$ wp plugin delete hello
+Deleted 'hello' plugin.
+Success: Deleted 1 of 1 plugins.
+
+Get a list of plugins:
+wp plugin list
+For example if you want to see only a list of all active plugins which have updates available, you can use:
+
+wp plugin list --field=name --status=active --update=available
+wp option
+Get site URL
+# Get site URL.
+wp option get siteurl
+
+# Set site URL
+wp option set siteurl
+wp search-replace
+This is a useful command that searches/replaces strings in the database. e.g.: replacing and old domain name with a new domain name.
+
+Before running this command we strongly recommend you to do a backup for your database, using the following command line:
+
+wp db export
+Once you’ve ensured that you have a backup for the database you can safely use the wp search-replace  command:
+==============
+wp search-replace 'http:' 'https:' --precise --recurse-objects --all-tables-with-prefix
+wp search-replace 'http://gplpartnership.com/' 'http://www.storystudiochicago.org/' --precise --recurse-objects --all-tables-with-prefix
+wp search-replace 'https://bardines.com/products/' 'https://zg3.786.myftpupload.com/our-products/' --precise --recurse-objects --all-tables-with-prefix
+
+======
+secureservercdn.net/198.71.233.47/ynz.0af.myftpupload.com
+
+wp search-replace 'secureservercdn.net/198.71.233.47/ynz.0af.myftpupload.com' 'ynz.0af.myftpupload.com' --precise --recurse-objects --all-tables-with-prefix
+
+
+'https://storystudiochicago.org/
+
+wp search-replace 'https://storystudiochicago.org' 'https://www.storystudiochicago.org' --precise --recurse-objects --all-tables-with-prefix
+
+[print-me target=".wc-product-table-wrapper"][print-me target=".wc-product-table-wrapper"]
+[product_table columns="name,description:List" category="aged-meats"][print-me target=".wc-product-table-wrapper"][block id="button"]
+[product_table columns="name,description:List" category="aged-meats"][block id="button"]
+
+[product_table columns="name,description" category="fresh-sausage"][block id="button"]
+
+[product_table columns="name,description,add_to_shopping_list" category="smoked-cheese"][block id="button"]
+image,name, description, price, add-to-cart
+https://zg3.786.myftpupload.com/
+
+https://bardines.com/products/
+https://zg3.786.myftpupload.com/our-products/
+
+wp search-replace 'Would be nice to have a short description of the category' 'CATEGORY DESCRIPTION' --precise --recurse-objects --all-tables-with-prefix
+
+wp search-replace '[product_table columns="name,description,price,add-to-cart" category="bardines-gourmet-meat-specialties"]' '[product_table columns="name,description,price,add-to-cart" category="bardines-gourmet-meat-specialties"][block id="button"]' --precise --recurse-objects --all-tables-with-prefix
+=================================
+WP-CLI Commands A-N
+wp admin – Open /wp-admin/ in a browser.
+wp cache – Adds, removes, fetches, and flushes the WP Object Cache object.
+wp cap – Adds, removes, and lists capabilities of a user role.
+wp cli – Review current WP-CLI info, check for updates, or see defined aliases.
+wp comment – Creates, updates, deletes, and moderates comments.
+wp config – Generates and reads the wp-config.php file.
+wp core – Downloads, installs, updates, and manages a WordPress installation.
+wp cron – Tests, runs, and deletes WP-Cron events; manages WP-Cron schedules.
+wp db – Performs basic database operations using credentials stored in wp-config.php.
+wp dist-archive – Create a distribution archive based on a project’s .distignore file.
+wp embed – Inspects oEmbed providers, clears embed cache, and more.
+wp eval – Executes arbitrary PHP code.
+wp eval-file – Loads and executes a PHP file.
+wp export – Exports WordPress content to a WXR file.
+wp find – Find WordPress installations on the filesystem.
+wp help – Get help on WP-CLI, or on a specific command.
+wp i18n – Provides internationalization tools for WordPress projects.
+wp import – Imports content from a given WXR file.
+wp language – Installs, activates, and manages language packs.
+wp media – Imports files as attachments, regenerates thumbnails, or lists registered image sizes.
+wp menu – Lists, creates, assigns, and deletes the active theme’s navigation menus.
+wp network – Perform network-wide operations.
+
+WP-CLI Commands O-Z
+wp option – Retrieves and sets site options, including plugin and WordPress settings.
+wp package – Lists, installs, and removes WP-CLI packages.
+wp plugin – Manages plugins, including installs, activations, and updates.
+wp post – Manages posts, content, and meta.
+wp post-type – Retrieves details on the site’s registered post types.
+wp profile – Profiles arbitrary code execution, files, key metrics, and stages.
+wp rewrite – Lists or flushes the site’s rewrite rules, updates the permalink structure.
+wp role – Manages user roles, including creating new roles and resetting to defaults.
+wp scaffold – Generates code for post types, taxonomies, plugins, child themes, etc.
+wp search-replace – Searches/replaces strings in the database.
+wp server – Launches PHP’s built-in web server for a specific WordPress installation.
+wp shell – Opens an interactive PHP console for running and testing PHP code.
+wp sidebar – Lists registered sidebars.
+wp site – Creates, deletes, empties, moderates, and lists one or more sites on a multisite installation.
+wp super-admin – Lists, adds, or removes super admin users on a multisite installation.
+wp taxonomy – Retrieves information about registered taxonomies.
+wp term – Manages taxonomy terms and term meta, with create, delete, and list commands.
+wp theme – Manages themes, including installs, activations, and updates.
+wp transient – Adds, gets, and deletes entries in the WordPress Transient Cache.
+wp user – Manages users, along with their roles, capabilities, and meta.
+wp widget – Manages widgets, including adding and moving them within sidebars.
+===============================
+
+wp user create --prompt
+
+--prompt
+There are some commands I still can never remember the arguments for.
+
+--prompt works with any WP-CLI command, even those you write yourself, and interactively walks you through all of the arguments you need to complete.
+
+==============================
+
+
+"youtube Video Player" src
+"youtube Video Player" data-src
+
+wp search-replace '"youtube Video Player" src' '"youtube Video Player" data-src' --precise --recurse-objects --all-tables-with-prefix
+
+
+Wood, Plastic
+
+Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at https://secureservercdn.net/wp-content/uploads/useanyfont/191031104506prixima-nova-regular.woff. (Reason: CORS header ‘Access-Control-Allow-Origin’ missing).
+
+https://www.kennywhitesports.com/wp-admin/plugins.php
+================
+
+Parameter	Description
+--precise	Force the use of PHP (instead of SQL) which is more thorough, but slower.
+--recurse-objects	Enable recursing into objects to replace strings.
+--all-tables-with-prefix	Enable replacement on any tables that match the table prefix even if not registered on $wpdb.
+If you want to run a test query without actually making changes you can add –dry-run parameter.
+
+wp user
+Manages users, along with their roles, capabilities, and meta.
+
+List users
+# List users
+wp user list
+
+# List users with administrator role
+wp user list --role=administrator
+Create a new user
+# Create a new administrator user.
+wp user create storystudiotesting jo.natha.nbrown@gmail.com --role=administrator
+Success: Created user 5.
+Password: C2p0MS4zCa
+
+
+# Create a new author user.
+wp user create john john@smith.com --role=author
+Success: Created user 6.
+Password: HoW5tGXIKf
+Delete user and re-assign posts to other user
+# Delete user john and reassign posts to user paul
+$ wp user delete john --reassign=paul
+Reset the password for one user
+Step 1:
+
+$ wp user list
+to see all users. Find the ID of the user you'd like to update.
+
+Step 2: update the user
+
+$ wp user update 1 --user_pass=2DeBa10XjxD3Z8Ma
+replacing "1" with the id of the user you want to update.
+Change admin email address for one user
+Step 1: $ wp user
+
+list to see all users. Find the ID of the user you'd like to update.
+
+Step 2: update the user
+
+$ wp user update 1 --user_email=<email> replacing "1" with the id of the user you want to update and <email> with the new email address.
+Set or modify a user role
+Step 1: 
+
+$ wp user list to see all users. Find the ID of the user you'd like to update.
+
+Step 2:
+
+$ wp user set-role 1 administrator
+Success: Added johndoe (1) to http://example.com as author. 
+
+# Available roles:
+
+administrator
+editor
+author
+contributor
+subscriber
+wp core
+Check for missing or modified core files
+If you want to check if there are missing or modified core WordPress files you can use:
+wp core verify-checksums
+Reinstall WordPress Core
+You can reinstall WordPress core using WP-CLI. The following command would download WordPress core without the default themes and plugins.
+wp core download --skip-content --force
+
+wp cache
+Flush cache
+WP-CLI  has the option to flush the default cache. You can rely on this option in case your website cache is not handled with the help of a caching plugin. To flush the cache, use the following command in your terminal:
+# Flush cache
+wp cache flush
+===================
+IMPORTING WORDPRESS WXR (.XML) FILES
+To perform a simple import of your file, just use the following command:
+
+wp import my-file.xml
+MODIFYING AUTHOR BEHAVIOR
+When importing a WXR file, you might have a situation where the post author in the export file doesn't exist on the site that it's being imported into. In that case, you can use the --authors option to define how to proceed with the import.
+
+Creating Non-Existent Authors
+If you want to create any authors that don't already exist, set value of the --authors option to create like this:
+
+wp import my-file.xml --authors=create
+Skipping Non-Existent Authors
+If you'd like to just leave the post's author empty if the user doesn't already exist, you can set the value of the --authors option to skip:
+
+wp import my-file.xml --authors=skip
+Custom Mapping Authors
+What if you want to associate your authors from the exported site with different users on the new site? WP-CLI allows for a custom CSV file to be provided. The CSV should be formatted as 2 columns with old_user_login and new_user_login as column headers like this:
+
+old_user_login	new_user_login
+user1	newuser1
+anotheruser	somethingelse
+To use the custom user mapping that you've defined within the CSV, just define the path within the --authors option like this:
+
+wp import my-file.xml --authors=my_file.csv
+SKIPPING CONTENT TYPES
+When performing an import of your WXR file, you also have the option to skip certain types of data, such as attachments or thumbnail generation.
+
+Skipping Attachment Imports
+If you don't want to import any of the attachments that are listed inside the WXR file, you can use the --skip option with the attachment data type like this:
+
+wp import my-file.xml --skip=attachment
+Skipping Thumbnail Generation
+What is you still want to import your post attachments but don't want to generate new thumbnails when the import occurs? Just use the --skip option with image_resize as the value like this:
+
+wp import my-file.csv --skip=image_resize
+
+
+====================================
+BULK IMPORT IMAGES
+It’s not unusual for a client to provide a set of images and ask you to import them into their website. Doing that through the administrator’s panel is painful. Instead, using the media tool of WP-CLI, you can complete this task in a single command:
+
+wp media import images_folder/*
+
+====
+
+wp db export before-empty-post-clean.sql --all-tablespaces --allow-root
+
+wp db export myBackup.sql --all-tablespaces --allow-root
+
+wp search-replace 'mayosis.com' 'wppluginstore.com' 
+
+https://teconce.com/
+https://wppluginstore.com/
+======
+wp core plugin manager
+
+Use the WP-CLI
+You can install and activate your plugins using the WordPress CLI.
+
+wp wpcore install --key=12345
+
+Options
+
+--force=yes
+Overwrite existing plugins if installed
+
+--activate=yes
+Activate the plugins
+
+--network=yes
+Network activate all
+
+=======================
+
+php -d memory_limit=512M "$(which wp)" package install git@github.com:wp-cli/doctor-command.git
+
+
+Set memory_limit on the fly as a temporary fix:
+
+ php -d memory_limit=512M "$(which wp)" package install <package-name>
+ php -d memory_limit=512M "$(which wp)" package install  trepmal/wp-revisions-cli
+ php -d memory_limit=512M "$(which wp)" package install  wp-cli/cron-command
+
+wp package install wp-cli/profile-command 
+
+wp package install trepmal/wp-revisions-cli
+
+wp search-replace 'https://dev-temp.wpmudev.host' 'https://wppluginstore.com'
+=====================================
+reinstall all plugins
+wp plugin install $(wp plugin list --field=name) --force
+
+===========================================
+
+wp user create jonathanb j.brown.1@gmail.com --role=administrator --user_pass=Da02252020!
+
+===============
+
+
+wp ai1wm backup --exclude-media --exclude-themes --exclude-inactive-themes --exclude-muplugins --exclude-plugins --exclude-inactive-plugins --exclude-cache
+
+wp ai1wm backup  --exclude-inactive-themes
+
+wp cache flush
+========================
+REGENERATING ALL THUMBNAILS
+To regenerate all thumbnails for all images inside your WordPress media library, you can use the following command:
+
+wp media regenerate --yes
+Once the command is run, all thumbnails for all images will be regenerated. Of course, if you have a large number of images inside your media library, it might take some extra time to run through them all.
+
+REGENERATING MISSING THUMBNAILS
+What if you updated your theme to add an additional image size but don't want to regenerate the thumbnails that already exist? You can regenerate thumbnails for only the missing image sizes using the --only-missing option like this:
+
+wp media regenerate --only-missing
+REGENERATING THUMBNAILS FOR SPECIFIC IMAGES
+If you want to regenerate thumbnails for a specific image, you can specify it by including the attachment ID after the command like this:
+
+wp media regenerate 123
+To regenerate thumbnails for multiple specified attachment IDs, just add them to the command like the following example:
+
+wp media regenerate 123 456 789
+KEEPING OLD THUMBNAIL SIZES
+When regenerating your WordPress media library image thumbnails, the default behavior is to delete the old thumbnails. If you want to keep them, you can use the --skip-delete option:
+
+wp media regenerate --skip-delete
+REGENERATING SPECIFIC THUMBNAIL SIZES
+In addition to being able to specify a specific image to regenerate thumbnails for, you can also define a specific thumbnail size to regenerate. To regenerate a specific size, use the --image_size option with the name of your thumbnail size as the value like in the following example:
+
+wp media regenerate --image_size=large
+
+
+wp media regenerate --yes
+=======================
+delete spam comments
+wp comment delete --force $(wp comment list --status=spam --format=ids) [--force]
+
+transients
+
+wp transient delete --expired
+
+delete trash
+wp post delete $(wp post list --post_status=trash --format=ids) --force --defer-term-counting 
+
+wp post delete --force $(wp post list --post_status=draft --format=ids)
+
+Delete Posts With Revisions
+If you did want to delete all post revision, then you can run this command;
+
+wp post delete --force $(wp post list --post_type='revision' --format=ids)
+
+======================================
+testArray = array_merge($testArray, $referenceTable['val2']);
+    var_dump($testArray);
+
+$testArray = array_merge($testArray, (array)$referenceTable['val2']);
+
+
+Deleting Empty WordPress Post Titles and Content Combinations
+Back up the database first before you actually delete anything!
+
+wp db export before-empty-post-clean.sql --all-tablespaces --allow-root
+
+
+Empty Post Title
+This WP-CLI command deletes the posts with empty titles and their associated postmeta, the --force flag deletes them permanently by skipping the trash. The tr command is used to replace any new lines with spaces to keep the formatting that WP-CLI requires.
+
+wp post delete $(wp db query "SELECT ID FROM $(wp db prefix --allow-root)posts WHERE post_title=''" --allow-root | tr '\r\n' ' ') --force --allow-root
+
+Empty Post Content
+Here is a similar command but only targets the deletion of posts with empty post content
+
+wp post delete $(wp db query "SELECT ID FROM $(wp db prefix --allow-root)posts WHERE post_content=''" --allow-root | tr '\r\n' ' ') --force --allow-root
+
+Empty Post Title and Content
+Finally this command will delete the posts that have an empty title and content
+
+wp post delete $(wp db query "SELECT ID FROM $(wp db prefix --allow-root)posts WHERE post_content='' AND post_title=''" --allow-root | tr '\r\n' ' ') --force --allow-root
+
+This will not delete associated postmeta but is faster since it is interacting with the database directly, could leave orphaned postmeta data leftover!
+
+
+
+Empty Custom Post Types
+Last example is for deleting those empty WooCommerce products
+
+wp post delete $(wp db query "SELECT ID FROM $(wp db prefix --allow-root)posts WHERE post_type='product' AND post_content=''"  --allow-root | tr '\r\n' ' ') --force --defer-term-counting --allow-root
+
+
+Empty Post Title and Content for Custom Post Types
+We can do the same thing for Custom Post Types by adding a post_type parameter, here we are looking for WooCommerce products so the post_type column has been set to product
+
+wp db query "SELECT ID FROM $(wp db prefix --allow-root)posts WHERE post_type='product' AND post_content='' AND post_title=''" --allow-root
+
+========================
+
+# Install the latest version from wordpress.org and activate
+$ wp plugin install wpcore --activate
+Installing bbPress (2.5.9)
+Downloading install package from https://downloads.wordpress.org/plugin/bbpress.2.5.9.zip...
+
+# Install the development version from wordpress.org
+$ wp plugin install bbpress --version=dev
+Installing bbPress (Development Version)
+Downloading install package from https://downloads.wordpress.org/plugin/bbpress.zip...
+
+
+# Install from a local zip file
+$ wp plugin install ../my-plugin.zip --activate
+Unpacking the package...
+Installing the plugin...
+Plugin installed successfully.
+Success: Installed 1 of 1 plugins.
+
+# Install from a remote zip file
+$ wp plugin install http://s3.amazonaws.com/bucketname/my-plugin.zip?AWSAccessKeyId=123&amp;Expires=456&amp;Signature=abcdef
+Downloading install package from http://s3.amazonaws.com/bucketname/my-plugin.zip?AWSAccessKeyId=123&amp;Expires=456&amp;Signature=abcdef
+
+
+# Update from a remote zip file
+$ wp plugin install https://github.com/envato/wp-envato-market/archive/master.zip --force
+
+
+===========
+# Forcefully re-install all installed plugins
+ wp plugin install $(wp plugin list --field=name) --force
+=========
+force reinstall plugin
+ wp plugin install elementor --force
+
+wp db export ../before-plugin-updates.sql --all-tablespaces --allow-root
+export database bakup
+=================
+
+
+
+======
+backup migrate
+
+
+wp db export
+
+Now you have a backup of your database in an .SQL file at the root of your website.
+
+WordPress File System Backup
+Copying files from the server is not available in WP-CLI, but you can quickly compress all of your files, including the recent .SQL backup of your database.
+
+Make sure you are in the root of your website, as we described earlier. Using the tar command with a few special parameters that make the backup better, and the trailing period at the end is very important, it ensures the new compressed file is saved in the same directory (i.e., folder).
+
+"tar -vczf yourbackupfilename.gz ."
+
+
+wp core update
+wp core update-db
+=============
+
+wp cli speed commands
+
+============
+wp cron test
+
+DISPLAYING ALL CRON EVENTS
+To display a list of all cron events currently scheduled on your WordPress site, use the following command from within your site's root directory:
+
+wp cron event list
+RUNNING ALL WORDPRESS CRON EVENTS
+If you want to trigger all currently due cron events (events that are due but haven't been run yet), you can run them with the following command:
+
+wp cron event run --due-now
+MANUALLY RUNNING A SCHEDULED CRON EVENT
+To run all WordPress scheduled events manually, regardless of if they are due or not, you can use the following WP-CLI command:
+
+wp cron event run --all
+SCHEDULING A NEW CRON EVENT
+Additional WP-Cron events can also be scheduled using WP-CLI. New cron events can be scheduled for any action hook within your site.
+
+Scheduling a New Event for the Next Cron Run
+The following command will schedule a new cron event for the desired action hook. This event will be triggered on the next time that the cron is run.
+
+Be sure to replace my_example_action with the name of the action hook that you want to execute.
+
+wp cron event schedule my_example_action
+Scheduling a New Event for a Specific Date/Time
+Scheduling a WordPress cron event to run on a specific date and time is similar to the example in the previous section, but requires an additional parameter that includes the date and time that the event should run.
+
+wp cron event schedule my_example_action '+1 hour'
+As you can see from the example above, a new event will be scheduled to run my_example_action in 1 hour.
+
+Since the time parameter allows for any string that can use converted to a timestamp with the PHP strtotime() function, the following examples would also be valid:
+
+Example: Run the Event on a Specific Date
+
+wp cron event schedule my_example_action '7 July 2019'
+Example: Run the Event in 1 Week
+
+wp cron event schedule my_example_action '+1 week'
+Example: Run the Event Next Monday
+
+wp cron event schedule my_example_action 'next Monday'
+For more information on the available formats, see the official PHP documentation on supported date and time formats.
+
+Scheduling a New Recurring Cron Event
+To create a new WordPress cron event that will repeat after a designated interval, you'll simply pass another argument containing how often the event will be run:
+
+wp cron event schedule my_example_action now daily
+In this example, we're using a WP-CLI command to tell WordPress to run my_example_action now and to run again once per day.
+
+The available intervals are based on any currently defined cron intervals. By default, WordPress contains the following interval names:
+
+hourly: Runs the event once per hour.
+twicedaily: Runs the event twice per day (every 12 hours).
+daily: Runs the event once per day (every 24 hours).
+If you need additional cron intervals, you can add them using the cron_schedules filter within your plugin or theme.
+
+DELETING A SCHEDULED CRON EVENT
+Deleting a scheduled cron event with WP-CLI is quite straightforward. To delete an existing event, run the following command, replacing my_example_action with the name of your event action hook:
+
+wp cron event delete my_example_action
+==========================================
+wp media import ~/public_html/wp-content/uploads/2010/**\/*.jpg
+
+====
+database
+
+username@[~/Desktop]: mysql -u root -p databasename
+Enter password:
+Reading table information for completion of table and column names
+You can turn off this feature to get a quicker startup with -A
+
+Welcome to the MySQL monitor. Commands end with ; or g.
+Your MySQL connection id is 892
+Server version: 5.5.13 MySQL Community Server (GPL)
+
+Copyright (c) 2000, 2010, Oracle and/or its affiliates. All rights reserved.
+
+Oracle is a registered trademark of Oracle Corporation and/or its
+affiliates. Other names may be trademarks of their respective
+owners.
+
+Type 'help;' or 'h' for help. Type 'c' to clear the current input statement.
+
+mysql> UPDATE wp_options SET option_value = replace(option_value, 'http://www.oldurl', 'http://www.newurl') WHERE option_name = 'home' OR option_name = 'siteurl';
+Query OK, 0 rows affected (0.00 sec)
+Rows matched: 2 Changed: 0 Warnings: 0
+
+mysql> UPDATE wp_posts SET guid = replace(guid, 'http://www.oldurl','http://www.newurl');
+Query OK, 0 rows affected (0.02 sec)
+Rows matched: 964 Changed: 0 Warnings: 0
+
+mysql> UPDATE wp_posts SET post_content = replace(post_content, 'http://www.oldurl', 'http://www.newurl');
+Query OK, 0 rows affected (0.05 sec)
+Rows matched: 964 Changed: 0 Warnings: 0
+
+mysql> UPDATE wp_postmeta SET meta_value = replace(meta_value,'http://www.oldurl','http://www.newurl');g
+Query OK, 0 rows affected (0.01 sec)
+Rows matched: 686 Changed: 0 Warnings: 0
+
+
+search 
+
+By default, the standard database search command will only search for tables that are registered with $wpdb. In most cases, this is perfectly fine since it will include any standard WordPress core tables, as well as tables used by plugins and themes (as long as they're being properly registered).
+
+wp db search 'http://www.w3.org/2000/svg'
+Optional: Search All Database Tables
+Optionally, you can include all tables within the database, regardless of if they're properly prefixed or registered using $wpdb:
+
+wp db search 'my search string' --all-tables
+SEARCHING THROUGH SPECIFIC TABLES
+Do you already know what table to search in? You can specify them when running the command by passing them after your search string like this:
+
+wp db search 'my search string' wp_posts
+Or to specify multiple tables:
+
+wp db search 'my search string' wp_posts wp_comments
+SEARCHING WITH REGEX (REGUL
+AR EXPRESSIONS)
+When searching for values that match a particular pattern, WP-CLI can be an incredibly handy too. Simply use regex within your database search query (without any flags) like this:
+
+wp db search '^wp.*' --regex
+If you want to pass additional regex flags within your database search, you can do so by using the --regex-flags parameter. For example, if you wanted to perform the same search as case-insensitive, it would look like this:
+
+wp db search '^wp.*' --regex --regex-flags=i
+
